@@ -1,0 +1,11 @@
+python 3.11
+
+torch 
+transformers
+diffusers
+PIL
+
+telepítő pip
+
+pip install -U "torch" torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install diffusers transformers accelerate safetensors pillow
