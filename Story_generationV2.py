@@ -1,7 +1,7 @@
-# Működés: generál egy rövid (5-6 mondatos) történetet, feldarabolja mondatokra (max N),
-# majd minden mondathoz 512x512 képet generál Stable Diffusion v1-5-tel, és BLIP-pel képleírást ad.
+# Működés: generál egy rövid (5-6 mondatos) történetet majd azokat mondatokra darabolja.
+# Minden mondathoz egy 512x512 képet generál Stable Diffusion v1-5-tel, és BLIP-pel képleírást ad.
 #
-# Telepítés (példa CUDA 11.8 / Windows/Linux):
+# Telepítés
 # pip install -U "torch" torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 # pip install diffusers transformers accelerate safetensors pillow
 
@@ -96,7 +96,7 @@ def generate_story_cpu(prompt: str) -> str:
     return story_text
 
 # -------------------------
-# 2) Mondatokra vágás (nem kényszerítve)
+# 2) Mondatokra vágás
 # -------------------------
 
 def split_into_sentences(text: str):
@@ -110,7 +110,7 @@ def split_into_sentences(text: str):
     return sentences
 
 # -------------------------
-# 3) Stable Diffusion betöltése (SD v1-5) és képgenerálás
+# 3) Stable Diffusion betöltése (GPU)
 # -------------------------
 
 def load_sd(sd_model_id: str):
@@ -156,35 +156,35 @@ def generate_images(pipe, prompts, image_size=IMAGE_SIZE, steps=SD_INFERENCE_STE
             print("Hiba a képgenerálásnál:", e)
 
     # SD után töröljük a pipe-ot és felszabadítjuk a memóriát
-    try:
-        # ha vannak nagy komponensek, töröljük
-        if hasattr(pipe, "unet"):
-            try:
-                del pipe.unet
-            except Exception:
-                pass
-        if hasattr(pipe, "vae"):
-            try:
-                del pipe.vae
-            except Exception:
-                pass
-        if hasattr(pipe, "text_encoder"):
-            try:
-                del pipe.text_encoder
-            except Exception:
-                pass
-    except Exception:
-        pass
-    try:
-        del pipe
-    except Exception:
-        pass
+    # try:
+    #     # ha vannak nagy komponensek, töröljük
+    #     if hasattr(pipe, "unet"):
+    #         try:
+    #             del pipe.unet
+    #         except Exception:
+    #             pass
+    #     if hasattr(pipe, "vae"):
+    #         try:
+    #             del pipe.vae
+    #         except Exception:
+    #             pass
+    #     if hasattr(pipe, "text_encoder"):
+    #         try:
+    #             del pipe.text_encoder
+    #         except Exception:
+    #             pass
+    # except Exception:
+    #     pass
+    # try:
+    #     del pipe
+    # except Exception:
+    #     pass
     
     clear_gpu()
     return image_paths
 
 # -------------------------
-# 4) BLIP képaláírás (GPU preferált, de CPU fallback)
+# 4) BLIP képleírás 
 # -------------------------
 
 def caption_images(image_paths):
@@ -230,24 +230,24 @@ def caption_images(image_paths):
     clear_gpu()
 
 # -------------------------
-# Fő futtatás
+# main
 # -------------------------
 
 def main():
     print("=== Pipeline start ===")
-    # 1) story (FLAN T5 XL on CPU)
+    # 1 történet
     story = generate_story_cpu(STORY_PROMPT)
     if not story:
         print("Történetgenerálás nem sikerült — kilépés.")
         return
 
-    # 2) split into sentences
+    # 2 mondatokra vágás
     sentences = split_into_sentences(story)
     if not sentences:
         print("Nincsenek mondatok a generált történetben — kilépés.")
         return
 
-    print("\nMondatok, amiket illusztrálunk (maximum):")
+    print("\nMondatok, amiket illusztrálunk")
     for idx, s in enumerate(sentences, start=1):
         print(f"{idx}. {s}")
 
@@ -256,7 +256,7 @@ def main():
         pfile = OUTPUT_DIR / f"part_{idx}_prompt.txt"
         pfile.write_text(s, encoding="utf-8")
 
-    # 3) load SD and generate images
+    # 3 SD betöltése
     sd_pipe = load_sd(SD_MODEL_ID)
     if sd_pipe is None:
         print("Stable Diffusion betöltése nem sikerült. Kilépés.")
@@ -267,7 +267,7 @@ def main():
         print("Nem készült kép. Kilépés.")
         return
 
-    # 4) caption images with BLIP
+    # 4 képek elemzése
     caption_images(image_paths)
 
     print("\n=== Pipeline complete ===")
