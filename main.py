@@ -37,7 +37,7 @@ SD_MODEL_ID = "runwayml/stable-diffusion-v1-5"
 CAP_MODEL_ID = "Salesforce/blip-image-captioning-base"
 
 STORY_PROMPT = (
-    "Write a story in 5-6 sentences about a lonely dragon who wants to befriend humans. "
+    "Write a story in 5-6 sentences about a lonely dragon who wants to befriend humans."
     "Keep each sentence as a clear visual scene that could be illustrated."
 )
 
@@ -154,31 +154,6 @@ def generate_images(pipe, prompts, image_size=IMAGE_SIZE, steps=SD_INFERENCE_STE
             # Tovább haladunk a következő prompttal (nem próbálunk kisebbet)
         except Exception as e:
             print("Hiba a képgenerálásnál:", e)
-
-    # SD után töröljük a pipe-ot és felszabadítjuk a memóriát
-    # try:
-    #     # ha vannak nagy komponensek, töröljük
-    #     if hasattr(pipe, "unet"):
-    #         try:
-    #             del pipe.unet
-    #         except Exception:
-    #             pass
-    #     if hasattr(pipe, "vae"):
-    #         try:
-    #             del pipe.vae
-    #         except Exception:
-    #             pass
-    #     if hasattr(pipe, "text_encoder"):
-    #         try:
-    #             del pipe.text_encoder
-    #         except Exception:
-    #             pass
-    # except Exception:
-    #     pass
-    # try:
-    #     del pipe
-    # except Exception:
-    #     pass
     
     clear_gpu()
     return image_paths
