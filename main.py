@@ -60,12 +60,12 @@ def clear_gpu():
 # -------------------------
 
 def generate_story_cpu(prompt: str) -> str:
-    print("1) Történetgenerálás: betöltés FLAN-T5-XL (CPU). Ez néhány másodpercet/percet is igénybe vehet RAM-tól függően.")
+    print(f"1) Történetgenerálás: betöltés {FLAN_MODEL_ID} (CPU).")
     try:
         tokenizer = AutoTokenizer.from_pretrained(FLAN_MODEL_ID)
         model = AutoModelForSeq2SeqLM.from_pretrained(FLAN_MODEL_ID)  # CPU default
     except Exception as e:
-        print("Hiba: nem sikerült betölteni a Flan-T5-XL modellt. Hiba:", e)
+        print(f"Hiba: nem sikerült betölteni a {FLAN_MODEL_ID} modellt. Hiba:", e)
         return ""
 
     story_text = ""
@@ -87,7 +87,7 @@ def generate_story_cpu(prompt: str) -> str:
     except Exception as e:
         print("Hiba a történet generálása közben:", e)
     finally:
-        # memóriafelszabadítás - fontos hogy CPU-s modell után GPU tiszta legyen
+        # memóriafelszabadítás
         try:
             del tokenizer, model
         except Exception:
@@ -103,7 +103,7 @@ def split_into_sentences(text: str):
     import re
     if not text:
         return []
-    # egyszerű, megbízható felbontás: .!? után
+    # egyszerű felbontás: .!? után
     parts = re.split(r'(?<=[.!?])\s+', text.strip())
     sentences = [p.strip() for p in parts if len(p.strip()) > 3]
 
@@ -150,8 +150,7 @@ def generate_images(pipe, prompts, image_size=IMAGE_SIZE, steps=SD_INFERENCE_STE
             image_paths.append(str(path))
             print(" -> Kép mentve:", path)
         except torch.cuda.OutOfMemoryError as oom:
-            print("OOM hiba a képgenerálásnál (512x512).", oom)
-            # Tovább haladunk a következő prompttal (nem próbálunk kisebbet)
+            print("OOM hiba a képgenerálásnál.", oom)
         except Exception as e:
             print("Hiba a képgenerálásnál:", e)
     
@@ -239,13 +238,12 @@ def main():
 
     image_paths = generate_images(sd_pipe, sentences, image_size=IMAGE_SIZE, steps=SD_INFERENCE_STEPS)
     if not image_paths:
-        print("Nem készült kép. Kilépés.")
+        print("Nem készült kép.")
         return
 
     # 4 képek elemzése
     caption_images(image_paths)
 
-    print("\n=== Pipeline complete ===")
     print("Output mappa:", OUTPUT_DIR.resolve())
 
 if __name__ == "__main__":
